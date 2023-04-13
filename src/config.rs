@@ -1,6 +1,6 @@
 use clap::Parser;
 use serde::{Deserialize, Serialize};
-use std::{fs, path::PathBuf};
+use std::{fs, path::PathBuf, process::exit};
 
 use crate::arg::Args;
 
@@ -29,7 +29,16 @@ impl Config {
         } else {
             PathBuf::from("./config.json")
         };
-        let config = fs::read_to_string(config_path).expect("Failed to read config file");
+        let config = match fs::read_to_string(&config_path) {
+            Ok(config) => config,
+            Err(err) => {
+                eprintln!(
+                    "Error: failed to read config file {:?}, {:?}",
+                    config_path, err
+                );
+                exit(1);
+            }
+        };
         let mut config: Config = serde_json::from_str(&config).expect("Config file format error");
 
         // Initial default config.
