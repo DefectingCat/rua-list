@@ -1,5 +1,6 @@
 {
   "log_level": "info",
+  "port": 3000,
 
   "list": {
     "exact": ["19240158324"],

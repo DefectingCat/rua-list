@@ -10,6 +10,8 @@ pub struct List {
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Config {
     pub log_info: Option<String>,
+    // Listen port
+    pub port: Option<usize>,
     pub list: List,
 }
 
@@ -17,7 +19,15 @@ impl Config {
     pub fn build() -> Self {
         let config_path = PathBuf::from("./config.json");
         let config = fs::read_to_string(config_path).expect("Failed to read config file");
-        let config: Config = serde_json::from_str(&config).expect("Config file format error");
+        let mut config: Config = serde_json::from_str(&config).expect("Config file format error");
+
+        // Initial default config
+        if config.port.is_none() {
+            config.port = Some(3000)
+        }
+        if config.log_info.is_none() {
+            config.log_info = Some("info".to_owned());
+        }
 
         config
     }
