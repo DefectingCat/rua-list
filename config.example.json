@@ -1,5 +1,6 @@
 {
   "log_level": "info",
+  "log_path": "/tmp/rua-list/log/",
   "port": 3000,
 
   "list": {
