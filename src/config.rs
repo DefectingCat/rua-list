@@ -1,5 +1,8 @@
+use clap::Parser;
 use serde::{Deserialize, Serialize};
 use std::{fs, path::PathBuf};
+
+use crate::arg::Args;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct List {
@@ -17,7 +20,13 @@ pub struct Config {
 
 impl Config {
     pub fn build() -> Self {
-        let config_path = PathBuf::from("./config.json");
+        let args = Args::parse();
+
+        let config_path = if let Some(path) = args.config {
+            path
+        } else {
+            PathBuf::from("./config.json")
+        };
         let config = fs::read_to_string(config_path).expect("Failed to read config file");
         let mut config: Config = serde_json::from_str(&config).expect("Config file format error");
 

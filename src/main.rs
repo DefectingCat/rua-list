@@ -1,5 +1,6 @@
 use crate::config::Config;
 
+mod arg;
 mod config;
 mod logger;
 
