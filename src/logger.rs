@@ -1,5 +1,5 @@
-use std::io::Write;
 use std::path::PathBuf;
+use std::{io::Write, path::Path};
 
 use crate::config::Config;
 use anyhow::Result;
@@ -10,7 +10,7 @@ use tokio::{
     io::AsyncWriteExt,
 };
 
-pub async fn create_folder(file_path: &PathBuf) -> Result<()> {
+pub async fn create_folder(file_path: &Path) -> Result<()> {
     if file_path.exists() {
         return Ok(());
     } else {

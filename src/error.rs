@@ -1,6 +1,7 @@
 use thiserror::Error;
 
 #[derive(Error, Debug)]
+#[allow(dead_code, unused)]
 pub enum CandyError {
     #[error("can not parse target")]
     Parse(String),
