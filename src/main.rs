@@ -1,6 +1,9 @@
+use crate::config::Config;
+
 mod config;
 mod logger;
 
 fn main() {
-    println!("Hello, world!");
+    let config = Config::build();
+    println!("{config:?}")
 }
