@@ -1,7 +1,7 @@
 use std::path::PathBuf;
+use std::process::exit;
 use std::{io::Write, path::Path};
 
-use crate::config::Config;
 use anyhow::Result;
 use chrono::Local;
 use env_logger::{Builder, Env};
@@ -9,6 +9,8 @@ use tokio::{
     fs::{self, OpenOptions},
     io::AsyncWriteExt,
 };
+
+use crate::config::RConfig;
 
 pub async fn create_folder(file_path: &Path) -> Result<()> {
     if file_path.exists() {
@@ -24,13 +26,20 @@ pub async fn create_folder(file_path: &Path) -> Result<()> {
     Ok(())
 }
 
-pub async fn init_logger(config: &Config) -> Result<()> {
-    let log_path = if let Some(path) = &config.log_path {
+pub async fn init_logger(config: RConfig) -> Result<()> {
+    let config = config.lock().await;
+    let log_path = if let Some(path) = config.log_path.clone() {
         path
     } else {
-        panic!("Can not read log path from config")
+        eprintln!("Can not read log path from config");
+        exit(1);
     };
-    let log_level = config.log_level.clone().unwrap();
+    let log_level = if let Some(level) = config.log_level.clone() {
+        level
+    } else {
+        eprintln!("Can not read log level from config");
+        exit(1);
+    };
 
     let now = Local::now();
     let formatted = format!("{}.log", now.format("%Y-%m-%d"));

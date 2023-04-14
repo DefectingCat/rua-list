@@ -1,6 +1,7 @@
 use clap::Parser;
 use serde::{Deserialize, Serialize};
-use std::{fs, path::PathBuf, process::exit};
+use std::{fs, path::PathBuf, process::exit, sync::Arc};
+use tokio::sync::Mutex;
 
 use crate::arg::Args;
 
@@ -18,6 +19,8 @@ pub struct Config {
     pub port: Option<usize>,
     pub list: List,
 }
+
+pub type RConfig = Arc<Mutex<Config>>;
 
 impl Config {
     pub fn build() -> Self {
