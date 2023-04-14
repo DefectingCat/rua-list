@@ -6,7 +6,10 @@ use log::{error, info};
 use serde::{Deserialize, Serialize};
 use wildmatch::WildMatch;
 
-use crate::{config::List, http_client::sms_aspx};
+use crate::{
+    config::List,
+    http_client::{sms_aspx, RUAService},
+};
 
 #[allow(non_snake_case)]
 #[derive(Serialize, Deserialize, Debug)]
@@ -21,9 +24,13 @@ pub struct SMSParams {
     extno: Option<String>,
 }
 
-async fn send_sms(uri: http::Uri, params: SMSParams) -> (http::StatusCode, String) {
+async fn send_sms(
+    uri: http::Uri,
+    params: SMSParams,
+    service: RUAService,
+) -> (http::StatusCode, String) {
     // Send request
-    match sms_aspx(&uri, params).await {
+    match sms_aspx(&uri, params, service).await {
         Ok(body) => {
             info!("Got response from {} {body}", uri.path());
             (http::StatusCode::OK, body)
@@ -44,14 +51,19 @@ async fn send_sms(uri: http::Uri, params: SMSParams) -> (http::StatusCode, Strin
 /// If mobile not in exact list, then will be check the
 /// whildcard list. etc.
 /// If mobile not in both above, sms request will not send.
-async fn match_check(list: List, uri: http::Uri, params: SMSParams) -> (http::StatusCode, String) {
+async fn match_check(
+    list: List,
+    uri: http::Uri,
+    params: SMSParams,
+    service: RUAService,
+) -> (http::StatusCode, String) {
     // Check exact list
     let mobile_finded = list.exact.iter().find(|number| **number == params.mobile);
     if mobile_finded.is_none() {
         info!("Got number not in exact list {}", params.mobile);
     } else {
         info!("Send sms with numerb {} in exact list", params.mobile);
-        return send_sms(uri, params).await;
+        return send_sms(uri, params, service).await;
     }
 
     // Check whildcard
@@ -67,7 +79,7 @@ async fn match_check(list: List, uri: http::Uri, params: SMSParams) -> (http::St
         )
     } else {
         info!("Send sms with numerb {} in whildcard list", params.mobile);
-        send_sms(uri, params).await
+        send_sms(uri, params, service).await
     }
 }
 
@@ -76,7 +88,7 @@ pub async fn match_check_get(
     uri: http::Uri,
     Query(params): Query<SMSParams>,
 ) -> impl response::IntoResponse {
-    match_check(list, uri, params).await
+    match_check(list, uri, params, RUAService::Get).await
 }
 
 pub async fn match_check_post(
@@ -84,5 +96,5 @@ pub async fn match_check_post(
     uri: http::Uri,
     Form(data): Form<SMSParams>,
 ) -> impl response::IntoResponse {
-    match_check(list, uri, data).await
+    match_check(list, uri, data, RUAService::Post).await
 }
