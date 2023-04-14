@@ -36,10 +36,6 @@ pub async fn get_sms_aspx(
     let mobile_finded = list.exact.iter().find(|number| **number == params.mobile);
     if mobile_finded.is_none() {
         info!("Got number not in exact list {}", params.mobile);
-        return (
-            http::StatusCode::FORBIDDEN,
-            "Phone number is not in whitelist".to_owned(),
-        );
     }
 
     // Check whildcard
