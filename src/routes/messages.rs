@@ -1,8 +1,11 @@
-use axum::{extract::Query, http, response};
+use axum::{
+    extract::{Query, State},
+    http, response,
+};
 use log::{error, info};
 use serde::{Deserialize, Serialize};
 
-use crate::http_client::sms_aspx;
+use crate::{config::List, http_client::sms_aspx};
 
 #[allow(non_snake_case)]
 #[derive(Serialize, Deserialize, Debug)]
@@ -19,9 +22,11 @@ pub struct SMSParams {
 
 /// Send real request if mobile is in the whitelist.
 pub async fn get_sms_aspx(
+    State(list): State<List>,
     uri: http::Uri,
     Query(params): Query<SMSParams>,
 ) -> impl response::IntoResponse {
+    dbg!(&list);
     match sms_aspx(&uri, params).await {
         Ok(body) => {
             info!("Got response from {} {body}", uri.path());
