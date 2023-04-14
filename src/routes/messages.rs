@@ -21,6 +21,23 @@ pub struct SMSParams {
     extno: String,
 }
 
+async fn send_sms(uri: http::Uri, params: SMSParams) -> (http::StatusCode, String) {
+    // Send request
+    match sms_aspx(&uri, params).await {
+        Ok(body) => {
+            info!("Got response from {} {body}", uri.path());
+            (http::StatusCode::OK, body)
+        }
+        Err(err) => {
+            error!("Failed to request {} {err}", uri.path());
+            (
+                http::StatusCode::INTERNAL_SERVER_ERROR,
+                "Failed to request sms.aspx {err}".to_owned(),
+            )
+        }
+    }
+}
+
 /// Send real request if mobile is in the whitelist.
 /// First check the exact list, if mobile in there, will
 /// send request directly.
@@ -36,6 +53,9 @@ pub async fn get_sms_aspx(
     let mobile_finded = list.exact.iter().find(|number| **number == params.mobile);
     if mobile_finded.is_none() {
         info!("Got number not in exact list {}", params.mobile);
+    } else {
+        info!("Send sms with numerb {} in exact list", params.mobile);
+        return send_sms(uri, params).await;
     }
 
     // Check whildcard
@@ -45,24 +65,12 @@ pub async fn get_sms_aspx(
         .any(|number| WildMatch::new(number).matches(&params.mobile));
     if !wildcard_finded {
         info!("Got number not in wildcard list {}", params.mobile);
-        return (
+        (
             http::StatusCode::FORBIDDEN,
             "Phone number is not in whitelist".to_owned(),
-        );
-    }
-
-    // Send request
-    match sms_aspx(&uri, params).await {
-        Ok(body) => {
-            info!("Got response from {} {body}", uri.path());
-            (http::StatusCode::OK, body)
-        }
-        Err(err) => {
-            error!("Failed to request {} {err}", uri.path());
-            (
-                http::StatusCode::INTERNAL_SERVER_ERROR,
-                "Failed to request sms.aspx {err}".to_owned(),
-            )
-        }
+        )
+    } else {
+        info!("Send sms with numerb {} in whildcard list", params.mobile);
+        send_sms(uri, params).await
     }
 }
