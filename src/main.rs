@@ -1,11 +1,13 @@
 use std::{net::SocketAddr, process::exit};
 
 use anyhow::Result;
-use axum::{http, response, routing::get, Router, Server};
+use axum::{http, middleware, response, routing::get, Router, Server};
 use log::{error, info};
+use tower::ServiceBuilder;
 
 use crate::{
     config::Config,
+    middlewares::logger_middleware,
     routes::messages::{match_check_get, match_check_post},
 };
 
@@ -15,6 +17,7 @@ mod consts;
 mod error;
 mod http_client;
 mod logger;
+mod middlewares;
 mod routes;
 
 #[tokio::main]
@@ -39,6 +42,7 @@ async fn main() -> Result<()> {
         .route("/smsGBK.aspx", get(match_check_get).post(match_check_post));
     let app = Router::new()
         .merge(message_routes)
+        .layer(ServiceBuilder::new().layer(middleware::from_fn(logger_middleware)))
         .fallback(fallback)
         .with_state(config.list);
 
@@ -56,7 +60,7 @@ async fn main() -> Result<()> {
         .await
     {
         Ok(()) => {
-            info!("Listen at {}", &addr);
+            info!("Server shutdown");
         }
         Err(err) => {
             error!("Can not start server {}", err);
