@@ -1,5 +1,5 @@
-use axum::extract::Query;
-use log::error;
+use axum::{extract::Query, http, response};
+use log::{error, info};
 use serde::{Deserialize, Serialize};
 
 use crate::http_client::sms_aspx;
@@ -17,12 +17,18 @@ pub struct SMSParams {
     extno: String,
 }
 
-pub async fn get_sms_aspx(Query(params): Query<SMSParams>) -> String {
+pub async fn get_sms_aspx(Query(params): Query<SMSParams>) -> impl response::IntoResponse {
     match sms_aspx(params).await {
-        Ok(()) => {}
-        Err(err) => {
-            error!("Failed to request sms.aspx {err}")
+        Ok(body) => {
+            info!("Got response from sms.aspx {body}");
+            (http::StatusCode::OK, body)
         }
-    };
-    "".to_owned()
+        Err(err) => {
+            error!("Failed to request sms.aspx {err}");
+            (
+                http::StatusCode::INTERNAL_SERVER_ERROR,
+                "Failed to request sms.aspx {err}".to_owned(),
+            )
+        }
+    }
 }
