@@ -1,11 +1,10 @@
 use clap::Parser;
 use serde::{Deserialize, Serialize};
-use std::{fs, path::PathBuf, process::exit, sync::Arc};
-use tokio::sync::Mutex;
+use std::{fs, path::PathBuf, process::exit};
 
 use crate::arg::Args;
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct List {
     exact: Vec<String>,
     wildcard: Vec<String>,
@@ -19,8 +18,6 @@ pub struct Config {
     pub port: Option<usize>,
     pub list: List,
 }
-
-pub type RConfig = Arc<Mutex<Config>>;
 
 impl Config {
     pub fn build() -> Self {

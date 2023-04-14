@@ -10,7 +10,7 @@ use tokio::{
     io::AsyncWriteExt,
 };
 
-use crate::config::RConfig;
+use crate::config::Config;
 
 pub async fn create_folder(file_path: &Path) -> Result<()> {
     if file_path.exists() {
@@ -26,8 +26,7 @@ pub async fn create_folder(file_path: &Path) -> Result<()> {
     Ok(())
 }
 
-pub async fn init_logger(config: RConfig) -> Result<()> {
-    let config = config.lock().await;
+pub async fn init_logger(config: &Config) -> Result<()> {
     let log_path = if let Some(path) = config.log_path.to_owned() {
         path
     } else {

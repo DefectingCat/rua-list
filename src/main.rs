@@ -1,9 +1,8 @@
-use std::{net::SocketAddr, process::exit, sync::Arc};
+use std::{net::SocketAddr, process::exit};
 
 use anyhow::Result;
 use axum::{http, response, routing::get, Router, Server};
 use log::{error, info};
-use tokio::sync::Mutex;
 
 use crate::{config::Config, routes::messages::get_sms_aspx};
 
@@ -17,15 +16,14 @@ mod routes;
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    let config = Arc::new(Mutex::new(Config::build()));
+    let config = Config::build();
 
-    let log_config = config.clone();
-    if let Err(err) = logger::init_logger(log_config).await {
+    if let Err(err) = logger::init_logger(&config).await {
         error!("Failed to create logger; {}", err.to_string());
         exit(1);
     }
 
-    let port = if let Some(port) = config.clone().lock().await.port.to_owned() {
+    let port = if let Some(port) = config.port {
         port
     } else {
         error!("Failed to read port from config, using default port 3000");
@@ -36,7 +34,10 @@ async fn main() -> Result<()> {
     let message_routes = Router::new()
         .route("/sms.aspx", get(get_sms_aspx))
         .route("/smsGBK.aspx", get(get_sms_aspx));
-    let app = Router::new().merge(message_routes).fallback(fallback);
+    let app = Router::new()
+        .merge(message_routes)
+        .fallback(fallback)
+        .with_state(config.list);
 
     info!("Server starting");
     let addr: SocketAddr = match format!("0.0.0.0:{port:?}").parse() {
