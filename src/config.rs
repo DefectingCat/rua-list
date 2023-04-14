@@ -6,8 +6,8 @@ use crate::arg::Args;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct List {
-    exact: Vec<String>,
-    wildcard: Vec<String>,
+    pub exact: Vec<String>,
+    pub wildcard: Vec<String>,
 }
 
 #[derive(Serialize, Deserialize, Debug)]

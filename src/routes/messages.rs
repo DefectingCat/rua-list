@@ -21,12 +21,29 @@ pub struct SMSParams {
 }
 
 /// Send real request if mobile is in the whitelist.
+/// First check the exact list, if mobile in there, will
+/// send request directly.
+/// If mobile not in exact list, then will be check the
+/// whildcard list. etc.
+/// If mobile not in both above, sms request will not send.
 pub async fn get_sms_aspx(
     State(list): State<List>,
     uri: http::Uri,
     Query(params): Query<SMSParams>,
 ) -> impl response::IntoResponse {
-    dbg!(&list);
+    // Check exact list
+    let mobile_finded = list.exact.iter().find(|number| **number == params.mobile);
+    if mobile_finded.is_none() {
+        info!("Got number not in whitelist {}", params.mobile);
+        return (
+            http::StatusCode::FORBIDDEN,
+            "Phone number is not in whitelist".to_owned(),
+        );
+    }
+
+    // Check whildcard
+
+    // Send request
     match sms_aspx(&uri, params).await {
         Ok(body) => {
             info!("Got response from {} {body}", uri.path());

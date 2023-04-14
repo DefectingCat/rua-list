@@ -51,7 +51,7 @@ pub async fn init_logger(config: &Config) -> Result<()> {
     builder
         .format(move |buf, record| {
             let formatted = format!("{}", now.format("%Y-%m-%d %H:%M:%S"));
-            let log = format!("{} - {} - {}\n", formatted, record.level(), record.args());
+            let log = format!("{} - {} - {}", formatted, record.level(), record.args());
             writeln!(buf, "{log}")?;
 
             let file_path = file_path.clone();
@@ -64,7 +64,7 @@ pub async fn init_logger(config: &Config) -> Result<()> {
                     .open(&file_path)
                     .await
                     .expect("Can not write log file");
-                file.write_all(log.as_bytes())
+                file.write_all(format!("{log}\n").as_bytes())
                     .await
                     .expect("Can not write log file");
             });
