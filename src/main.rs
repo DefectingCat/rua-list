@@ -11,6 +11,7 @@ mod arg;
 mod config;
 mod consts;
 mod error;
+mod http_client;
 mod logger;
 mod routes;
 
