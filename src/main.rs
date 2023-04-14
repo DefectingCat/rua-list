@@ -1,12 +1,7 @@
 use std::{net::SocketAddr, process::exit, sync::Arc};
 
 use anyhow::Result;
-use axum::{
-    http::{self, StatusCode},
-    response,
-    routing::get,
-    Router, Server,
-};
+use axum::{http, response, routing::get, Router, Server};
 use log::{error, info};
 use tokio::sync::Mutex;
 
@@ -14,6 +9,7 @@ use crate::{config::Config, routes::messages::get_sms_aspx};
 
 mod arg;
 mod config;
+mod consts;
 mod error;
 mod logger;
 mod routes;
