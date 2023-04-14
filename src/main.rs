@@ -33,7 +33,9 @@ async fn main() -> Result<()> {
     };
 
     // Define routes
-    let message_routes = Router::new().route("/sms.aspx", get(get_sms_aspx));
+    let message_routes = Router::new()
+        .route("/sms.aspx", get(get_sms_aspx))
+        .route("/smsGBK.aspx", get(get_sms_aspx));
     let app = Router::new().merge(message_routes).fallback(fallback);
 
     info!("Server starting");

@@ -52,7 +52,7 @@ pub async fn init_logger(config: RConfig) -> Result<()> {
     builder
         .format(move |buf, record| {
             let formatted = format!("{}", now.format("%Y-%m-%d %H:%M:%S"));
-            let log = format!("{} - {} - {}", formatted, record.level(), record.args());
+            let log = format!("{} - {} - {}\n", formatted, record.level(), record.args());
             writeln!(buf, "{log}")?;
 
             let file_path = file_path.clone();

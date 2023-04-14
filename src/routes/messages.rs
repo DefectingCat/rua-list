@@ -17,8 +17,11 @@ pub struct SMSParams {
     extno: String,
 }
 
-pub async fn get_sms_aspx(Query(params): Query<SMSParams>) -> impl response::IntoResponse {
-    match sms_aspx(params).await {
+pub async fn get_sms_aspx(
+    uri: http::Uri,
+    Query(params): Query<SMSParams>,
+) -> impl response::IntoResponse {
+    match sms_aspx(uri, params).await {
         Ok(body) => {
             info!("Got response from sms.aspx {body}");
             (http::StatusCode::OK, body)
