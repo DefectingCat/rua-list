@@ -1,10 +1,11 @@
 use std::{net::SocketAddr, process::exit, sync::Arc};
 
 use anyhow::Result;
+use axum::{routing::get, Router, Server};
 use log::{error, info};
 use tokio::sync::Mutex;
 
-use crate::config::Config;
+use crate::{config::Config, routes::messages::get_sms_aspx};
 
 mod arg;
 mod config;
@@ -28,7 +29,10 @@ async fn main() -> Result<()> {
         error!("Failed to read port from config, using default port 3000");
         3000
     };
-    let app = axum::Router::new();
+
+    // Define routes
+    let message_routes = Router::new().route("/sms.aspx", get(get_sms_aspx));
+    let app = Router::new().merge(message_routes);
 
     info!("Server starting");
     let addr: SocketAddr = match format!("0.0.0.0:{port:?}").parse() {
@@ -38,7 +42,7 @@ async fn main() -> Result<()> {
             exit(1);
         }
     };
-    match axum::Server::bind(&addr)
+    match Server::bind(&addr)
         .serve(app.into_make_service())
         .with_graceful_shutdown(shutdown_signal())
         .await
