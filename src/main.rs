@@ -63,7 +63,7 @@ async fn main() -> Result<()> {
     Ok(())
 }
 
-///Handle server shutdown signal
+/// Handle server shutdown signal
 async fn shutdown_signal() {
     tokio::signal::ctrl_c()
         .await

@@ -17,17 +17,18 @@ pub struct SMSParams {
     extno: String,
 }
 
+/// Send real request if mobile is in the whitelist.
 pub async fn get_sms_aspx(
     uri: http::Uri,
     Query(params): Query<SMSParams>,
 ) -> impl response::IntoResponse {
-    match sms_aspx(uri, params).await {
+    match sms_aspx(&uri, params).await {
         Ok(body) => {
-            info!("Got response from sms.aspx {body}");
+            info!("Got response from {} {body}", uri.path());
             (http::StatusCode::OK, body)
         }
         Err(err) => {
-            error!("Failed to request sms.aspx {err}");
+            error!("Failed to request {} {err}", uri.path());
             (
                 http::StatusCode::INTERNAL_SERVER_ERROR,
                 "Failed to request sms.aspx {err}".to_owned(),
