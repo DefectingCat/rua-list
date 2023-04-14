@@ -4,6 +4,7 @@ use axum::{
 };
 use log::{error, info};
 use serde::{Deserialize, Serialize};
+use wildmatch::WildMatch;
 
 use crate::{config::List, http_client::sms_aspx};
 
@@ -34,7 +35,7 @@ pub async fn get_sms_aspx(
     // Check exact list
     let mobile_finded = list.exact.iter().find(|number| **number == params.mobile);
     if mobile_finded.is_none() {
-        info!("Got number not in whitelist {}", params.mobile);
+        info!("Got number not in exact list {}", params.mobile);
         return (
             http::StatusCode::FORBIDDEN,
             "Phone number is not in whitelist".to_owned(),
@@ -42,6 +43,17 @@ pub async fn get_sms_aspx(
     }
 
     // Check whildcard
+    let wildcard_finded = list
+        .wildcard
+        .iter()
+        .any(|number| WildMatch::new(number).matches(&params.mobile));
+    if !wildcard_finded {
+        info!("Got number not in wildcard list {}", params.mobile);
+        return (
+            http::StatusCode::FORBIDDEN,
+            "Phone number is not in whitelist".to_owned(),
+        );
+    }
 
     // Send request
     match sms_aspx(&uri, params).await {
