@@ -28,6 +28,7 @@ async fn main() -> Result<()> {
         error!("Failed to create logger; {}", err.to_string());
         exit(1);
     }
+    info!("Server starting");
 
     let port = if let Some(port) = config.port {
         port
@@ -46,7 +47,6 @@ async fn main() -> Result<()> {
         .fallback(fallback)
         .with_state(config.list);
 
-    info!("Server starting");
     let addr: SocketAddr = match format!("0.0.0.0:{port:?}").parse() {
         Ok(addr) => addr,
         Err(err) => {
@@ -54,6 +54,7 @@ async fn main() -> Result<()> {
             exit(1);
         }
     };
+    info!("Server listening on {}", &addr);
     match Server::bind(&addr)
         .serve(app.into_make_service())
         .with_graceful_shutdown(shutdown_signal())
