@@ -27,6 +27,7 @@ pub async fn sms_aspx(uri: &http::Uri, params: SMSParams, service: RUAService) -
             info!("Send post request to {} with params {params:?}", uri.path());
             let body = client
                 .post(format!("{}{uri}", MSG_URL))
+                .form(&params)
                 .send()
                 .await?
                 .text()
