@@ -1,6 +1,6 @@
 use axum::{
     extract::{Query, State},
-    http, response,
+    http, response, Form,
 };
 use log::{error, info};
 use serde::{Deserialize, Serialize};
@@ -11,14 +11,14 @@ use crate::{config::List, http_client::sms_aspx};
 #[allow(non_snake_case)]
 #[derive(Serialize, Deserialize, Debug)]
 pub struct SMSParams {
-    userid: String,
-    account: String,
-    password: String,
+    userid: Option<String>,
+    account: Option<String>,
+    password: Option<String>,
     mobile: String,
-    content: String,
-    sendTime: String,
-    action: String,
-    extno: String,
+    content: Option<String>,
+    sendTime: Option<String>,
+    action: Option<String>,
+    extno: Option<String>,
 }
 
 async fn send_sms(uri: http::Uri, params: SMSParams) -> (http::StatusCode, String) {
@@ -44,11 +44,7 @@ async fn send_sms(uri: http::Uri, params: SMSParams) -> (http::StatusCode, Strin
 /// If mobile not in exact list, then will be check the
 /// whildcard list. etc.
 /// If mobile not in both above, sms request will not send.
-pub async fn get_sms_aspx(
-    State(list): State<List>,
-    uri: http::Uri,
-    Query(params): Query<SMSParams>,
-) -> impl response::IntoResponse {
+async fn match_check(list: List, uri: http::Uri, params: SMSParams) -> (http::StatusCode, String) {
     // Check exact list
     let mobile_finded = list.exact.iter().find(|number| **number == params.mobile);
     if mobile_finded.is_none() {
@@ -73,4 +69,20 @@ pub async fn get_sms_aspx(
         info!("Send sms with numerb {} in whildcard list", params.mobile);
         send_sms(uri, params).await
     }
+}
+
+pub async fn match_check_get(
+    State(list): State<List>,
+    uri: http::Uri,
+    Query(params): Query<SMSParams>,
+) -> impl response::IntoResponse {
+    match_check(list, uri, params).await
+}
+
+pub async fn match_check_post(
+    State(list): State<List>,
+    uri: http::Uri,
+    Form(data): Form<SMSParams>,
+) -> impl response::IntoResponse {
+    match_check(list, uri, data).await
 }

@@ -4,7 +4,10 @@ use anyhow::Result;
 use axum::{http, response, routing::get, Router, Server};
 use log::{error, info};
 
-use crate::{config::Config, routes::messages::get_sms_aspx};
+use crate::{
+    config::Config,
+    routes::messages::{match_check_get, match_check_post},
+};
 
 mod arg;
 mod config;
@@ -32,8 +35,8 @@ async fn main() -> Result<()> {
 
     // Define routes
     let message_routes = Router::new()
-        .route("/sms.aspx", get(get_sms_aspx))
-        .route("/smsGBK.aspx", get(get_sms_aspx));
+        .route("/sms.aspx", get(match_check_get).post(match_check_post))
+        .route("/smsGBK.aspx", get(match_check_get).post(match_check_post));
     let app = Router::new()
         .merge(message_routes)
         .fallback(fallback)
