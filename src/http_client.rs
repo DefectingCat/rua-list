@@ -1,7 +1,7 @@
 use crate::{consts::MSG_URL, routes::messages::SMSParams};
 use anyhow::Result;
 use axum::http;
-use log::info;
+use log::{debug, info};
 
 pub enum RUAService {
     Get,
@@ -14,7 +14,8 @@ pub async fn sms_aspx(uri: &http::Uri, params: SMSParams, service: RUAService) -
     let client = reqwest::Client::new();
     match service {
         RUAService::Get => {
-            info!("Send get request to {} with params {params:?}", uri.path());
+            info!("Send get request to {}", uri.path());
+            debug!("Send get request to {} with params {params:?}", uri.path());
             let body = client
                 .get(format!("{}{uri}", MSG_URL))
                 .send()
@@ -24,7 +25,8 @@ pub async fn sms_aspx(uri: &http::Uri, params: SMSParams, service: RUAService) -
             Ok(body)
         }
         RUAService::Post => {
-            info!("Send post request to {} with params {params:?}", uri.path());
+            info!("Send post request to {}", uri.path());
+            debug!("Send post request to {} with params {params:?}", uri.path());
             let body = client
                 .post(format!("{}{uri}", MSG_URL))
                 .form(&params)

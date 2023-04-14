@@ -62,7 +62,7 @@ async fn match_check(
     if mobile_finded.is_none() {
         info!("Got number not in exact list {}", params.mobile);
     } else {
-        info!("Send sms with numerb {} in exact list", params.mobile);
+        info!("Send sms with number {} in exact list", params.mobile);
         return send_sms(uri, params, service).await;
     }
 
@@ -78,7 +78,7 @@ async fn match_check(
             "Phone number is not in whitelist".to_owned(),
         )
     } else {
-        info!("Send sms with numerb {} in whildcard list", params.mobile);
+        info!("Send sms with number {} in whildcard list", params.mobile);
         send_sms(uri, params, service).await
     }
 }
