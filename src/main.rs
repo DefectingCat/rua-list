@@ -10,6 +10,7 @@ mod arg;
 mod config;
 mod error;
 mod logger;
+mod routes;
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -37,11 +38,19 @@ async fn main() -> Result<()> {
             exit(1);
         }
     };
-    axum::Server::bind(&addr)
+    match axum::Server::bind(&addr)
         .serve(app.into_make_service())
         .with_graceful_shutdown(shutdown_signal())
         .await
-        .unwrap();
+    {
+        Ok(()) => {
+            info!("Listen at {}", &addr);
+        }
+        Err(err) => {
+            error!("Can not start server {}", err);
+            exit(1);
+        }
+    }
 
     Ok(())
 }
