@@ -1,4 +1,4 @@
-use std::{process::exit, sync::Arc};
+use std::{net::SocketAddr, process::exit, sync::Arc};
 
 use anyhow::Result;
 use log::{error, info};
@@ -15,13 +15,32 @@ mod logger;
 async fn main() -> Result<()> {
     let config = Arc::new(Mutex::new(Config::build()));
 
-    let config = config.clone();
-    if let Err(err) = logger::init_logger(config).await {
+    let log_config = config.clone();
+    if let Err(err) = logger::init_logger(log_config).await {
         error!("Failed to create logger; {}", err.to_string());
         exit(1);
     }
 
+    let port = if let Some(port) = config.clone().lock().await.port.to_owned() {
+        port
+    } else {
+        error!("Failed to read port from config, using default port 3000");
+        3000
+    };
+    let app = axum::Router::new();
+
     info!("Server starting");
+    let addr: SocketAddr = match format!("0.0.0.0:{port:?}").parse() {
+        Ok(addr) => addr,
+        Err(err) => {
+            error!("Failed to parse address {}", err);
+            exit(1);
+        }
+    };
+    axum::Server::bind(&addr)
+        .serve(app.into_make_service())
+        .await
+        .unwrap();
 
     Ok(())
 }

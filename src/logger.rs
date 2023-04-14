@@ -28,13 +28,13 @@ pub async fn create_folder(file_path: &Path) -> Result<()> {
 
 pub async fn init_logger(config: RConfig) -> Result<()> {
     let config = config.lock().await;
-    let log_path = if let Some(path) = config.log_path.clone() {
+    let log_path = if let Some(path) = config.log_path.to_owned() {
         path
     } else {
         eprintln!("Can not read log path from config");
         exit(1);
     };
-    let log_level = if let Some(level) = config.log_level.clone() {
+    let log_level = if let Some(level) = config.log_level.to_owned() {
         level
     } else {
         eprintln!("Can not read log level from config");
