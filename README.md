@@ -17,3 +17,8 @@ cargo build --release
 ## Run with Docker
 
 TODO
+
+## TODO
+
+-   [ ] Switch logger to tracing.
+-   [ ] Split individual log file.
