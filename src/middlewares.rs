@@ -7,6 +7,7 @@ pub async fn logger_middleware<B>(request: Request<B>, next: Next<B>) -> Respons
 where
     B: Debug,
 {
+    print!("test");
     let host = if let Some(host) = request.headers().get("host") {
         host.to_str().unwrap_or("Unknown")
     } else {
