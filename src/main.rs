@@ -5,10 +5,6 @@ use axum::{
 };
 use log::{error, info};
 use std::{net::SocketAddr, process::exit, time::Duration};
-use tokio::{
-    io::{AsyncBufReadExt, BufReader},
-    net::TcpListener,
-};
 use tower::{timeout::TimeoutLayer, ServiceBuilder};
 
 use crate::{
