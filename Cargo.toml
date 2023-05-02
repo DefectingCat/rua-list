@@ -18,4 +18,6 @@ chrono = "0.4.24"
 axum = "0.6.15"
 reqwest = "0.11.16"
 wildmatch = "2.1.1"
-tower = "0.4.13"
+tower = { version = "0.4.13", features = ["full"] }
+async-trait = "0.1.68"
+futures-util = "0.3.28"

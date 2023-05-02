@@ -1,13 +1,7 @@
-use std::fmt::Debug;
-
 use axum::{http::Request, middleware::Next, response::Response};
-use log::{debug, info};
+use log::info;
 
-pub async fn logger_middleware<B>(request: Request<B>, next: Next<B>) -> Response
-where
-    B: Debug,
-{
-    print!("test");
+pub async fn logger_middleware<B>(request: Request<B>, next: Next<B>) -> Response {
     let host = if let Some(host) = request.headers().get("host") {
         host.to_str().unwrap_or("Unknown")
     } else {
@@ -20,6 +14,6 @@ where
         request.version(),
         host
     );
-    debug!("{:?}", request);
+    // debug!("{:?}", request);
     next.run(request).await
 }

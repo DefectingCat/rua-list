@@ -1,13 +1,21 @@
-use std::{net::SocketAddr, process::exit};
+use std::{net::SocketAddr, process::exit, time::Duration};
 
 use anyhow::Result;
-use axum::{http, middleware, response, routing::get, Router, Server};
+use axum::{
+    error_handling::HandleErrorLayer,
+    http,
+    http::StatusCode,
+    middleware::{self},
+    response,
+    routing::get,
+    BoxError, Router, Server,
+};
 use log::{error, info};
-use tower::ServiceBuilder;
+use tower::{timeout::TimeoutLayer, ServiceBuilder};
 
 use crate::{
     config::Config,
-    middlewares::logger_middleware,
+    middlewares::{headers_parse::MyLayer, logger::logger_middleware},
     routes::messages::{match_check_get, match_check_post},
 };
 
@@ -43,9 +51,18 @@ async fn main() -> Result<()> {
         .route("/smsGBK.aspx", get(match_check_get).post(match_check_post));
     let app = Router::new()
         .merge(message_routes)
-        .layer(ServiceBuilder::new().layer(middleware::from_fn(logger_middleware)))
         .fallback(fallback)
-        .with_state(config.list);
+        .with_state(config.list)
+        .layer(
+            ServiceBuilder::new()
+                .layer(middleware::from_fn(logger_middleware))
+                .layer(HandleErrorLayer::new(|_: BoxError| async {
+                    StatusCode::REQUEST_TIMEOUT
+                }))
+                .layer(MyLayer)
+                .layer(TimeoutLayer::new(Duration::from_secs(10))),
+        );
+    // .route_layer(from_extractor::<HeaderParse>());
 
     let addr: SocketAddr = match format!("0.0.0.0:{port:?}").parse() {
         Ok(addr) => addr,
