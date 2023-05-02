@@ -1,10 +1,14 @@
-use log::error;
+use log::{debug, error, info};
 use std::{net::SocketAddr, process::exit};
 use tokio::{
     io::{AsyncBufReadExt, AsyncReadExt, AsyncWriteExt, BufReader},
     net::{TcpListener, TcpStream},
 };
 
+/// Parse request headers.
+///
+/// Delete all illegal headers, the reqeust to localhost:port + 1
+/// Also forward response from server to client
 pub async fn headers_parser(port: usize) {
     let addr: SocketAddr = match format!("0.0.0.0:{:?}", port).parse() {
         Ok(addr) => addr,
@@ -14,6 +18,7 @@ pub async fn headers_parser(port: usize) {
         }
     };
     let listener = TcpListener::bind(addr).await.expect("Can not start server");
+    info!("Server listening on {}", &addr);
 
     loop {
         let (mut stream, _) = listener.accept().await.unwrap();
@@ -26,6 +31,7 @@ pub async fn headers_parser(port: usize) {
             let header = &header[1..header.len() - 2];
 
             let mut content_len: usize = 0;
+            // Remove all illegal headers
             let header: Vec<_> = header
                 .iter()
                 .filter(|head| head.contains(':'))
@@ -38,12 +44,12 @@ pub async fn headers_parser(port: usize) {
                     h
                 })
                 .collect();
-            dbg!(&header);
             let headers = format!("{first_line}\r\n{}\r\n\r\n", header.join("\r\n"));
+            // If has content-length, read request body
             let request = if content_len > 0 {
                 let mut body = vec![0; content_len];
                 if let Err(err) = buf.read_exact(&mut body).await {
-                    error!("Can not read body {}", err)
+                    error!("Can not read request body {}", err)
                 }
                 format!("{headers}{}", String::from_utf8_lossy(&body))
             } else {
@@ -51,6 +57,7 @@ pub async fn headers_parser(port: usize) {
             };
 
             let mut connector = TcpStream::connect("localhost:3001").await.unwrap();
+            // Forward all request without illegal headers
             connector.write_all(request.as_bytes()).await.unwrap();
             let mut reader = BufReader::new(connector);
             let mut res_header = String::new();
@@ -61,7 +68,7 @@ pub async fn headers_parser(port: usize) {
                 }
             }
             let mut res_len: usize = 0;
-            let res_headers: Vec<_> = res_header.split("\r\n").collect::<Vec<_>>();
+            let res_headers: Vec<_> = res_header.split("\r\n").collect();
             let res_headers: Vec<_> = res_headers
                 .iter()
                 .map(|h| {
@@ -72,11 +79,11 @@ pub async fn headers_parser(port: usize) {
                     h
                 })
                 .collect();
-            dbg!(res_headers);
+            debug!("{res_headers:?}");
             let response = if res_len > 0 {
                 let mut body = vec![0; res_len];
                 if let Err(err) = reader.read_exact(&mut body).await {
-                    error!("Can not read body {}", err)
+                    error!("Can not read response body {}", err)
                 }
                 format!("{res_header}{}", String::from_utf8_lossy(&body))
             } else {
