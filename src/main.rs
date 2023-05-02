@@ -13,6 +13,7 @@ use tower::{timeout::TimeoutLayer, ServiceBuilder};
 
 use crate::{
     config::Config,
+    header_parser::headers_parser,
     middlewares::logger::logger_middleware,
     routes::messages::{match_check_get, match_check_post},
 };
@@ -21,6 +22,7 @@ mod arg;
 mod config;
 mod consts;
 mod error;
+mod header_parser;
 mod http_client;
 mod logger;
 mod middlewares;
@@ -61,48 +63,7 @@ async fn main() -> Result<()> {
         );
 
     tokio::spawn(async move {
-        let addr: SocketAddr = match format!("0.0.0.0:{:?}", port).parse() {
-            Ok(addr) => addr,
-            Err(err) => {
-                error!("Failed to parse address {}", err);
-                exit(1);
-            }
-        };
-        let listener = TcpListener::bind(addr).await.expect("Can not start server");
-
-        loop {
-            let (mut socket, _) = listener.accept().await.unwrap();
-
-            tokio::spawn(async move {
-                let (mut reader, mut writer) = socket.split();
-
-                let mut buf = BufReader::new(reader);
-                let mut header = String::new();
-                loop {
-                    let count = buf.read_line(&mut header).await.unwrap();
-                    if count < 3 {
-                        break;
-                    }
-                }
-                let mut body = String::new();
-                loop {
-                    let count = buf.read_line(&mut body).await.unwrap();
-                    if count < 3 {
-                        break;
-                    }
-                }
-                let header: Vec<_> = header.split("\r\n").collect();
-                let first_line = header.first().unwrap();
-                let header = &header[1..header.len() - 2];
-                let header: Vec<_> = header
-                    .iter()
-                    .filter(|head| head.contains(':'))
-                    .map(|head| head.to_string())
-                    .collect();
-                let headers = format!("{first_line}\r\n{}\r\n\r\n", header.join(""));
-                dbg!(&headers, &body);
-            });
-        }
+        headers_parser(port).await;
     });
 
     let addr: SocketAddr = match format!("0.0.0.0:{:?}", port + 1).parse() {
