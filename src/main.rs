@@ -11,6 +11,10 @@ use axum::{
     BoxError, Router, Server,
 };
 use log::{error, info};
+use tokio::{
+    io::{AsyncBufReadExt, AsyncReadExt, BufReader},
+    net::{TcpListener, TcpStream},
+};
 use tower::{timeout::TimeoutLayer, ServiceBuilder};
 
 use crate::{
@@ -62,9 +66,38 @@ async fn main() -> Result<()> {
                 .layer(MyLayer)
                 .layer(TimeoutLayer::new(Duration::from_secs(10))),
         );
-    // .route_layer(from_extractor::<HeaderParse>());
 
-    let addr: SocketAddr = match format!("0.0.0.0:{port:?}").parse() {
+    tokio::spawn(async move {
+        let addr: SocketAddr = match format!("0.0.0.0:{:?}", port).parse() {
+            Ok(addr) => addr,
+            Err(err) => {
+                error!("Failed to parse address {}", err);
+                exit(1);
+            }
+        };
+        let listener = TcpListener::bind(addr).await.expect("Can not start server");
+
+        loop {
+            let (mut socket, _) = listener.accept().await.unwrap();
+
+            tokio::spawn(async move {
+                let (mut reader, mut writer) = socket.split();
+
+                let mut buf = BufReader::new(reader);
+                let mut header = String::new();
+                loop {
+                    let count = buf.read_line(&mut header).await.unwrap();
+                    if count < 3 {
+                        break;
+                    }
+                }
+                let header: Vec<_> = header.split("\r\n").collect();
+                dbg!(&header);
+            });
+        }
+    });
+
+    let addr: SocketAddr = match format!("0.0.0.0:{:?}", port + 1).parse() {
         Ok(addr) => addr,
         Err(err) => {
             error!("Failed to parse address {}", err);

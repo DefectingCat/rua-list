@@ -1068,6 +1068,7 @@ dependencies = [
  "clap",
  "env_logger",
  "futures-util",
+ "httparse",
  "log",
  "reqwest",
  "serde",

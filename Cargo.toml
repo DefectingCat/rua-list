@@ -21,3 +21,4 @@ wildmatch = "2.1.1"
 tower = { version = "0.4.13", features = ["full"] }
 async-trait = "0.1.68"
 futures-util = "0.3.28"
+httparse = "1.8.0"
