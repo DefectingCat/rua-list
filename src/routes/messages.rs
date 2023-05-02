@@ -38,7 +38,7 @@ async fn send_sms(
         Err(err) => {
             error!("Failed to request {} {err}", uri.path());
             (
-                http::StatusCode::INTERNAL_SERVER_ERROR,
+                http::StatusCode::OK,
                 "Failed to request sms.aspx {err}".to_owned(),
             )
         }
