@@ -91,8 +91,23 @@ async fn main() -> Result<()> {
                         break;
                     }
                 }
+                let mut body = String::new();
+                loop {
+                    let count = buf.read_line(&mut body).await.unwrap();
+                    if count < 3 {
+                        break;
+                    }
+                }
                 let header: Vec<_> = header.split("\r\n").collect();
-                dbg!(&header);
+                let first_line = header.first().unwrap();
+                let header = &header[1..header.len() - 2];
+                let header: Vec<_> = header
+                    .iter()
+                    .filter(|head| head.contains(':'))
+                    .map(|head| head.to_string())
+                    .collect();
+                let headers = format!("{first_line}\r\n{}\r\n\r\n", header.join(""));
+                dbg!(&headers, &body);
             });
         }
     });
