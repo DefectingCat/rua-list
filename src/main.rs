@@ -1,25 +1,19 @@
-use std::{net::SocketAddr, process::exit, time::Duration};
-
 use anyhow::Result;
 use axum::{
-    error_handling::HandleErrorLayer,
-    http,
-    http::StatusCode,
-    middleware::{self},
-    response,
-    routing::get,
+    error_handling::HandleErrorLayer, http, http::StatusCode, middleware, response, routing::get,
     BoxError, Router, Server,
 };
 use log::{error, info};
+use std::{net::SocketAddr, process::exit, time::Duration};
 use tokio::{
-    io::{AsyncBufReadExt, AsyncReadExt, BufReader},
-    net::{TcpListener, TcpStream},
+    io::{AsyncBufReadExt, BufReader},
+    net::TcpListener,
 };
 use tower::{timeout::TimeoutLayer, ServiceBuilder};
 
 use crate::{
     config::Config,
-    middlewares::{headers_parse::MyLayer, logger::logger_middleware},
+    middlewares::logger::logger_middleware,
     routes::messages::{match_check_get, match_check_post},
 };
 
@@ -63,7 +57,6 @@ async fn main() -> Result<()> {
                 .layer(HandleErrorLayer::new(|_: BoxError| async {
                     StatusCode::REQUEST_TIMEOUT
                 }))
-                .layer(MyLayer)
                 .layer(TimeoutLayer::new(Duration::from_secs(10))),
         );
 
