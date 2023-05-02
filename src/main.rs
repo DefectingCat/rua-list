@@ -62,7 +62,7 @@ async fn main() -> Result<()> {
         headers_parser(port).await;
     });
 
-    let addr: SocketAddr = match format!("localhost:{:?}", port + 1).parse() {
+    let addr: SocketAddr = match format!("127.0.0.1:{:?}", port + 1).parse() {
         Ok(addr) => addr,
         Err(err) => {
             error!("Failed to parse address {}", err);
