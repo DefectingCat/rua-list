@@ -38,10 +38,9 @@ pub async fn headers_parser(port: usize) {
                     h
                 })
                 .collect();
-            let headers = format!("{first_line}\r\n{}\r\n\r\n", header.join(""));
-
+            dbg!(&header);
+            let headers = format!("{first_line}\r\n{}\r\n\r\n", header.join("\r\n"));
             let request = if content_len > 0 {
-                dbg!(&content_len);
                 let mut body = vec![0; content_len];
                 if let Err(err) = buf.read_exact(&mut body).await {
                     error!("Can not read body {}", err)
@@ -50,8 +49,41 @@ pub async fn headers_parser(port: usize) {
             } else {
                 headers
             };
-            dbg!(&request);
-            stream.write_all(b"HTTP/1.1 200 OK\r\n\r\n").await.unwrap();
+
+            let mut connector = TcpStream::connect("localhost:3001").await.unwrap();
+            connector.write_all(request.as_bytes()).await.unwrap();
+            let mut reader = BufReader::new(connector);
+            let mut res_header = String::new();
+            loop {
+                let count = reader.read_line(&mut res_header).await.unwrap();
+                if count < 3 {
+                    break;
+                }
+            }
+            let mut res_len: usize = 0;
+            let res_headers: Vec<_> = res_header.split("\r\n").collect::<Vec<_>>();
+            let res_headers: Vec<_> = res_headers
+                .iter()
+                .map(|h| {
+                    if h.to_lowercase().starts_with("content-length") {
+                        let content: Vec<_> = h.split(':').collect();
+                        res_len = content[1].trim().parse().unwrap();
+                    }
+                    h
+                })
+                .collect();
+            dbg!(res_headers);
+            let response = if res_len > 0 {
+                let mut body = vec![0; res_len];
+                if let Err(err) = reader.read_exact(&mut body).await {
+                    error!("Can not read body {}", err)
+                }
+                format!("{res_header}{}", String::from_utf8_lossy(&body))
+            } else {
+                res_header
+            };
+
+            stream.write_all(response.as_bytes()).await.unwrap();
         });
     }
 }
