@@ -32,9 +32,18 @@ pub async fn headers_parser(port: usize) {
 
     tokio::spawn(async move {
         while let Some(frame) = rx.recv().await {
-            let mut connector = TcpStream::connect("localhost:3001").await.unwrap();
+            let mut connector = match TcpStream::connect("127.0.0.1:3001").await {
+                Ok(stream) => stream,
+                Err(err) => {
+                    error!("Can not request to server {}", err);
+                    exit(1);
+                }
+            };
             // Forward all request without illegal headers
-            connector.write_all(frame.request.as_bytes()).await.unwrap();
+            if let Err(err) = connector.write_all(frame.request.as_bytes()).await {
+                error!("Can not write to server {}", err);
+                exit(1);
+            }
             let mut reader = BufReader::new(connector);
             let mut res_header = String::new();
             loop {
@@ -107,15 +116,28 @@ pub async fn headers_parser(port: usize) {
             };
 
             let (res_tx, rx) = oneshot::channel();
-            tx.send(Frame {
-                request,
-                responder: res_tx,
-            })
-            .await
-            .unwrap();
+            if let Err(err) = tx
+                .send(Frame {
+                    request,
+                    responder: res_tx,
+                })
+                .await
+            {
+                error!("Can not send frame with mpsc {}", err);
+                exit(1);
+            }
 
-            let response = rx.await.unwrap();
-            stream.write_all(response.as_bytes()).await.unwrap();
+            let response = match rx.await {
+                Ok(res) => res,
+                Err(err) => {
+                    error!("Failed to receive response {}", err);
+                    exit(1);
+                }
+            };
+            if let Err(err) = stream.write_all(response.as_bytes()).await {
+                error!("Failed to write reponse to client {}", err);
+                exit(1);
+            }
         });
     }
 }
