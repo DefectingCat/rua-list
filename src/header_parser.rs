@@ -1,9 +1,9 @@
 use log::{debug, error, info};
-use std::{net::SocketAddr, process::exit};
+use std::{net::SocketAddr, process::exit, sync::Arc};
 use tokio::{
     io::{AsyncBufReadExt, AsyncReadExt, AsyncWriteExt, BufReader},
     net::{TcpListener, TcpStream},
-    sync::{mpsc, oneshot},
+    sync::{mpsc, oneshot, Mutex},
 };
 
 type Responder = oneshot::Sender<String>;
@@ -31,20 +31,24 @@ pub async fn headers_parser(port: usize) {
     let (tx, mut rx) = mpsc::channel::<Frame>(128);
 
     tokio::spawn(async move {
-        while let Some(frame) = rx.recv().await {
-            let mut connector = match TcpStream::connect("127.0.0.1:3001").await {
-                Ok(stream) => stream,
-                Err(err) => {
-                    error!("Can not request to server {}", err);
-                    exit(1);
-                }
-            };
-            // Forward all request without illegal headers
-            if let Err(err) = connector.write_all(frame.request.as_bytes()).await {
-                error!("Can not write to server {}", err);
-                exit(1);
+        let connector = match TcpStream::connect("127.0.0.1:3001").await {
+            Ok(stream) => stream,
+            Err(err) => {
+                error!("Can not request to server {}", err);
+                return;
             }
-            let mut reader = BufReader::new(connector);
+        };
+        let connector = Arc::new(Mutex::new(connector));
+        while let Some(frame) = rx.recv().await {
+            let connector = connector.clone();
+            let mut connector = connector.lock().await;
+            let (reader, mut writer) = connector.split();
+            // Forward all request without illegal headers
+            if let Err(err) = writer.write_all(frame.request.as_bytes()).await {
+                error!("Can not write to server {}", err);
+                return;
+            }
+            let mut reader = BufReader::new(reader);
             let mut res_header = String::new();
             loop {
                 let count = reader.read_line(&mut res_header).await.unwrap();
@@ -124,19 +128,18 @@ pub async fn headers_parser(port: usize) {
                 .await
             {
                 error!("Can not send frame with mpsc {}", err);
-                exit(1);
+                return;
             }
 
             let response = match rx.await {
                 Ok(res) => res,
                 Err(err) => {
                     error!("Failed to receive response {}", err);
-                    exit(1);
+                    return;
                 }
             };
             if let Err(err) = stream.write_all(response.as_bytes()).await {
                 error!("Failed to write reponse to client {}", err);
-                exit(1);
             }
         });
     }
