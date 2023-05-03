@@ -29,7 +29,7 @@ mod routes;
 async fn main() -> Result<()> {
     let config = Config::build();
 
-    logger_init(&config)?;
+    let _guard = logger_init(&config)?;
     info!("Server starting");
 
     let port = if let Some(port) = config.port {
@@ -91,6 +91,8 @@ async fn shutdown_signal() {
         .await
         .expect("Expect shutdown signal handler");
     info!("Got signal shutdown");
+    info!("Server shutdown");
+    exit(1);
 }
 
 /// Response all fallback route with not found
