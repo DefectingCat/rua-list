@@ -20,7 +20,6 @@ mod consts;
 mod error;
 mod header_parser;
 mod http_client;
-mod logger;
 mod middlewares;
 mod routes;
 
@@ -28,10 +27,6 @@ mod routes;
 async fn main() -> Result<()> {
     let config = Config::build();
 
-    // if let Err(err) = logger::init_logger(&config).await {
-    //     error!("Failed to create logger; {}", err.to_string());
-    //     exit(1);
-    // }
     tracing_subscriber::fmt()
         .compact()
         .with_file(false)

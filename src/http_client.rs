@@ -3,6 +3,7 @@ use anyhow::Result;
 use axum::http;
 use log::{debug, info};
 
+#[derive(Debug)]
 pub enum RUAService {
     Get,
     Post,
