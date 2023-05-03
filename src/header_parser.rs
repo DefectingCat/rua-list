@@ -3,7 +3,15 @@ use std::{net::SocketAddr, process::exit};
 use tokio::{
     io::{AsyncBufReadExt, AsyncReadExt, AsyncWriteExt, BufReader},
     net::{TcpListener, TcpStream},
+    sync::{mpsc, oneshot},
 };
+
+type Responder = oneshot::Sender<String>;
+#[derive(Debug)]
+struct Frame {
+    request: String,
+    responder: Responder,
+}
 
 /// Parse request headers.
 ///
@@ -20,7 +28,49 @@ pub async fn headers_parser(port: usize) {
     let listener = TcpListener::bind(addr).await.expect("Can not start server");
     info!("Server listening on {}", &addr);
 
+    let (tx, mut rx) = mpsc::channel::<Frame>(128);
+
+    tokio::spawn(async move {
+        while let Some(frame) = rx.recv().await {
+            let mut connector = TcpStream::connect("localhost:3001").await.unwrap();
+            // Forward all request without illegal headers
+            connector.write_all(frame.request.as_bytes()).await.unwrap();
+            let mut reader = BufReader::new(connector);
+            let mut res_header = String::new();
+            loop {
+                let count = reader.read_line(&mut res_header).await.unwrap();
+                if count < 3 {
+                    break;
+                }
+            }
+            let mut res_len: usize = 0;
+            let res_headers: Vec<_> = res_header.split("\r\n").collect();
+            let res_headers: Vec<_> = res_headers
+                .iter()
+                .map(|h| {
+                    if h.to_lowercase().starts_with("content-length") {
+                        let content: Vec<_> = h.split(':').collect();
+                        res_len = content[1].trim().parse().unwrap();
+                    }
+                    h
+                })
+                .collect();
+            debug!("{res_headers:?}");
+            let response = if res_len > 0 {
+                let mut body = vec![0; res_len];
+                if let Err(err) = reader.read_exact(&mut body).await {
+                    error!("Can not read response body {}", err)
+                }
+                format!("{res_header}{}", String::from_utf8_lossy(&body))
+            } else {
+                res_header
+            };
+            frame.responder.send(response).unwrap();
+        }
+    });
+
     loop {
+        let tx = tx.clone();
         let (mut stream, _) = listener.accept().await.unwrap();
 
         tokio::spawn(async move {
@@ -56,40 +106,15 @@ pub async fn headers_parser(port: usize) {
                 headers
             };
 
-            let mut connector = TcpStream::connect("localhost:3001").await.unwrap();
-            // Forward all request without illegal headers
-            connector.write_all(request.as_bytes()).await.unwrap();
-            let mut reader = BufReader::new(connector);
-            let mut res_header = String::new();
-            loop {
-                let count = reader.read_line(&mut res_header).await.unwrap();
-                if count < 3 {
-                    break;
-                }
-            }
-            let mut res_len: usize = 0;
-            let res_headers: Vec<_> = res_header.split("\r\n").collect();
-            let res_headers: Vec<_> = res_headers
-                .iter()
-                .map(|h| {
-                    if h.to_lowercase().starts_with("content-length") {
-                        let content: Vec<_> = h.split(':').collect();
-                        res_len = content[1].trim().parse().unwrap();
-                    }
-                    h
-                })
-                .collect();
-            debug!("{res_headers:?}");
-            let response = if res_len > 0 {
-                let mut body = vec![0; res_len];
-                if let Err(err) = reader.read_exact(&mut body).await {
-                    error!("Can not read response body {}", err)
-                }
-                format!("{res_header}{}", String::from_utf8_lossy(&body))
-            } else {
-                res_header
-            };
+            let (res_tx, rx) = oneshot::channel();
+            tx.send(Frame {
+                request,
+                responder: res_tx,
+            })
+            .await
+            .unwrap();
 
+            let response = rx.await.unwrap();
             stream.write_all(response.as_bytes()).await.unwrap();
         });
     }
