@@ -12,7 +12,7 @@ pub struct List {
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Config {
-    pub log_level: Option<String>,
+    // pub log_level: Option<String>,
     pub log_path: Option<PathBuf>,
     // Listen port
     pub port: Option<usize>,
@@ -45,9 +45,9 @@ impl Config {
         if config.port.is_none() {
             config.port = Some(3000)
         }
-        if config.log_level.is_none() {
-            config.log_level = Some("info".to_owned());
-        }
+        // if config.log_level.is_none() {
+        //     config.log_level = Some("info".to_owned());
+        // }
         if config.log_path.is_none() {
             config.log_path = Some(PathBuf::from("/tmp/rua-list/log"))
         }

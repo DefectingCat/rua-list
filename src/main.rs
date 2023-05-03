@@ -20,6 +20,7 @@ mod consts;
 mod error;
 mod header_parser;
 mod http_client;
+mod logger;
 mod middlewares;
 mod routes;
 
