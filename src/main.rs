@@ -10,6 +10,7 @@ use tower::{timeout::TimeoutLayer, ServiceBuilder};
 use crate::{
     config::Config,
     header_parser::headers_parser,
+    logger::logger_init,
     middlewares::logger::logger_middleware,
     routes::messages::{match_check_get, match_check_post},
 };
@@ -28,12 +29,7 @@ mod routes;
 async fn main() -> Result<()> {
     let config = Config::build();
 
-    tracing_subscriber::fmt()
-        .compact()
-        .with_file(false)
-        .with_thread_ids(true)
-        .with_target(false)
-        .init();
+    logger_init(&config)?;
     info!("Server starting");
 
     let port = if let Some(port) = config.port {
