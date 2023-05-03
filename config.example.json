@@ -1,9 +1,9 @@
 {
-  "log_path": "./logs/",
+  "log_path": "/tmp/rua-list/logs/",
   "port": 3000,
 
   "list": {
-    "exact": ["19840174017"],
-    "wildcard": ["1984017*", "198*4017", "*4017", "?9840174017"]
+    "exact": [],
+    "wildcard": []
   }
 }
