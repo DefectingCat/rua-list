@@ -56,19 +56,15 @@ async fn main() -> Result<()> {
                 .layer(TimeoutLayer::new(Duration::from_secs(10))),
         );
 
-    // Parse illegal headers
-    tokio::spawn(async move {
-        headers_parser(port).await;
-    });
+    let addr: SocketAddr = match format!("127.0.0.1:{:?}", port + 1).parse() {
+        Ok(addr) => addr,
+        Err(err) => {
+            error!("Failed to parse address {}", err);
+            exit(1);
+        }
+    };
 
     tokio::spawn(async move {
-        let addr: SocketAddr = match format!("127.0.0.1:{:?}", port + 1).parse() {
-            Ok(addr) => addr,
-            Err(err) => {
-                error!("Failed to parse address {}", err);
-                exit(1);
-            }
-        };
         match Server::bind(&addr)
             .serve(app.into_make_service())
             .with_graceful_shutdown(shutdown_signal())
@@ -84,6 +80,7 @@ async fn main() -> Result<()> {
         }
     });
 
+    headers_parser(port).await;
     Ok(())
 }
 
