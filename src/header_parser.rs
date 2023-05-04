@@ -106,7 +106,7 @@ pub async fn headers_parser(port: usize) {
                     h
                 })
                 .collect();
-            debug!(&header);
+            debug!("{:?}", &header);
             let headers = format!("{first_line}\r\n{}\r\n\r\n", header.join("\r\n"));
             // If has content-length, read request body
             let request = if content_len > 0 {
