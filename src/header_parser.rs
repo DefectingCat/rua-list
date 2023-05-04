@@ -90,6 +90,7 @@ pub async fn headers_parser(port: usize) {
             let header = read_to_end(&mut buf).await;
             let header: Vec<_> = header.split("\r\n").collect();
             let first_line = header.first().unwrap();
+            // TODO: Out of range check
             let header = &header[1..header.len() - 2];
 
             let mut content_len: usize = 0;
