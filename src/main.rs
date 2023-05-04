@@ -9,7 +9,7 @@ use tower::{timeout::TimeoutLayer, ServiceBuilder};
 
 use crate::{
     config::Config,
-    // header_parser::headers_parser,
+    header_parser::headers_parser,
     logger::logger_init,
     middlewares::logger::logger_middleware,
     routes::messages::{match_check_get, match_check_post},
@@ -56,30 +56,32 @@ async fn main() -> Result<()> {
                 .layer(TimeoutLayer::new(Duration::from_secs(10))),
         );
 
-    let addr: SocketAddr = match format!("0.0.0.0:{:?}", port).parse() {
+    let addr: SocketAddr = match format!("0.0.0.0:{:?}", port + 1).parse() {
         Ok(addr) => addr,
         Err(err) => {
             error!("Failed to parse address {}", err);
             exit(1);
         }
     };
-    info!("Server listening on {}", &addr);
+    // info!("Server listening on {}", &addr);
 
-    match Server::bind(&addr)
-        .serve(app.into_make_service())
-        .with_graceful_shutdown(shutdown_signal())
-        .await
-    {
-        Ok(()) => {
-            info!("Server shutdown");
+    tokio::spawn(async move {
+        match Server::bind(&addr)
+            .serve(app.into_make_service())
+            .with_graceful_shutdown(shutdown_signal())
+            .await
+        {
+            Ok(()) => {
+                info!("Server shutdown");
+            }
+            Err(err) => {
+                error!("Can not start server {}", err);
+                exit(1);
+            }
         }
-        Err(err) => {
-            error!("Can not start server {}", err);
-            exit(1);
-        }
-    }
+    });
 
-    // headers_parser(port).await;
+    headers_parser(port).await;
     Ok(())
 }
 

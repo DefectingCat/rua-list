@@ -1,9 +1,9 @@
 use log::{debug, error, info};
-use std::{net::SocketAddr, process::exit, sync::Arc};
+use std::{net::SocketAddr, process::exit};
 use tokio::{
     io::{AsyncBufReadExt, AsyncReadExt, AsyncWriteExt, BufReader},
     net::{TcpListener, TcpStream},
-    sync::{mpsc, oneshot, Mutex},
+    sync::{mpsc, oneshot},
 };
 
 type Responder = oneshot::Sender<String>;
@@ -31,22 +31,21 @@ pub async fn headers_parser(port: usize) {
     let (tx, mut rx) = mpsc::channel::<Frame>(128);
 
     tokio::spawn(async move {
-        let connector = match TcpStream::connect("127.0.0.1:3001").await {
-            Ok(stream) => stream,
-            Err(err) => {
-                error!("Can not request to server {}", err);
-                return;
-            }
-        };
-        let connector = Arc::new(Mutex::new(connector));
         while let Some(frame) = rx.recv().await {
-            let connector = connector.clone();
-            let mut connector = connector.lock().await;
+            let mut connector = match TcpStream::connect("127.0.0.1:3001").await {
+                Ok(stream) => stream,
+                Err(err) => {
+                    error!("Can not request to server {}", err);
+                    break;
+                }
+            };
+            // let connector = connector.clone();
+            // let mut connector = connector.lock().await;
             let (reader, mut writer) = connector.split();
             // Forward all request without illegal headers
             if let Err(err) = writer.write_all(frame.request.as_bytes()).await {
                 error!("Can not write to server {}", err);
-                return;
+                break;
             }
             let mut reader = BufReader::new(reader);
             let mut res_header = String::new();
@@ -148,7 +147,14 @@ pub async fn headers_parser(port: usize) {
 async fn read_to_end(buf: &mut BufReader<&mut TcpStream>) -> String {
     let mut target = String::new();
     loop {
-        let count = buf.read_line(&mut target).await.unwrap();
+        let count = match buf.read_line(&mut target).await {
+            Ok(c) => c,
+            Err(err) => {
+                error!("{}", err);
+                1
+            }
+        };
+
         if count < 3 {
             break;
         }
