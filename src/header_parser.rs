@@ -1,3 +1,4 @@
+use anyhow::Result;
 use log::{debug, error, info};
 use std::{net::SocketAddr, process::exit};
 use tokio::{
@@ -87,8 +88,15 @@ pub async fn headers_parser(port: usize) {
 
         tokio::spawn(async move {
             let mut buf = BufReader::new(&mut stream);
-            let header = read_to_end(&mut buf).await;
+            let header = match read_to_end(&mut buf).await {
+                Ok(c) => c,
+                Err(err) => {
+                    error!("Failed to read headers {}", err);
+                    "".to_owned()
+                }
+            };
             let header: Vec<_> = header.split("\r\n").collect();
+            dbg!(&header);
             let first_line = header.first().unwrap();
             // TODO: Out of range check
             let header = &header[1..header.len() - 2];
@@ -146,20 +154,13 @@ pub async fn headers_parser(port: usize) {
     }
 }
 
-async fn read_to_end(buf: &mut BufReader<&mut TcpStream>) -> String {
+async fn read_to_end(buf: &mut BufReader<&mut TcpStream>) -> Result<String> {
     let mut target = String::new();
     loop {
-        let count = match buf.read_line(&mut target).await {
-            Ok(c) => c,
-            Err(err) => {
-                error!("{}", err);
-                1
-            }
-        };
-
+        let count = buf.read_line(&mut target).await?;
         if count < 3 {
             break;
         }
     }
-    target
+    Ok(target)
 }
