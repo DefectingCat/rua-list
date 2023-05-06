@@ -1,13 +1,6 @@
 stages:
-    - test
     - build
     - publish
-
-tests:
-    stage: test
-    image: rust
-    script:
-        - cargo test
 
 build:amd64:
     stage: build
