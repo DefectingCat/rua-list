@@ -6,6 +6,9 @@ build:amd64:
     stage: build
     image: rust
     script:
+        - rustup target add x86_64-unknown-linux-musl
+        - rustup target add x86_64-unknown-linux-gnu
+        - rustup target add x86_64-pc-windows-gnu
         - cargo build --release
     artifacts:
         paths:
