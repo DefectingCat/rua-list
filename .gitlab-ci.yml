@@ -16,15 +16,21 @@ build:linux-gnu-amd64:
 
 build:linux-musl-amd64:
     stage: build
-    image: rust
+    image: sseemayer/rust-musl-builder-mingw:latest
     script:
-        - rustup target add x86_64-unknown-linux-musl
-        - rustup target add x86_64-unknown-linux-gnu
-        - rustup target add x86_64-pc-windows-gnu
         - cargo build --target=x86_64-unknown-linux-musl --release
     artifacts:
         paths:
             - target/release/x86_64-unknown-linux-musl/rua-list
+
+build:windows-amd64:
+    stage: build
+    image: sseemayer/rust-musl-builder-mingw:latest
+    script:
+        - cargo build --target=x86_64-pc-windows-gnu --release
+    artifacts:
+        paths:
+            - target/release/x86_64-pc-windows-gnu/rua-list
 
 rustdoc:
     stage: build
