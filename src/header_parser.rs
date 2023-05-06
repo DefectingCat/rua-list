@@ -92,7 +92,7 @@ pub async fn headers_parser(port: usize) {
                 Ok(c) => c,
                 Err(err) => {
                     error!("Failed to read headers {}", err);
-                    "".to_owned()
+                    return;
                 }
             };
             let header: Vec<_> = header.split("\r\n").collect();
