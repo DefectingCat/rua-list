@@ -39,7 +39,8 @@ pages:
     stage: publish
     image: alpine
     dependencies:
-        - build:amd64
+        - build:linux-gnu-amd64
+        - build:linux-musl-amd64
         - rustdoc
     script:
         - mkdir -p public
