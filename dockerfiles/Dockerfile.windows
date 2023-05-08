@@ -1,0 +1,31 @@
+FROM rust:1.67-alpine as builder
+RUN apk add --no-cache musl-dev sqlite-static openssl-dev openssl-libs-static pkgconf libpq-dev mingw-w64-gcc
+
+WORKDIR /app
+
+# Create appuser
+ENV USER=xfy
+ENV UID=10001
+
+RUN adduser \
+    --disabled-password \
+    --gecos "" \
+    --home "/nonexistent" \
+    --shell "/sbin/nologin" \
+    --no-create-home \
+    --uid "${UID}" \
+    "${USER}" \
+    && mkdir $HOME/.cargo \
+    && echo "[source.crates-io]" >> $HOME/.cargo/config \
+    && echo "replace-with = 'ustc'" >> $HOME/.cargo/config \
+    && echo "" >> $HOME/.cargo/config \
+    && echo "[source.ustc]" >> $HOME/.cargo/config \
+    && echo "registry = \"sparse+https://mirrors.ustc.edu.cn/crates.io-index/\"" >> $HOME/.cargo/config \
+    && rustup target add x86_64-unknown-linux-musl \
+    && rustup target add x86_64-pc-windows-gnu \
+    && rustup toolchain install stable-x86_64-pc-windows-gnu \
+    && update-ca-certificates
+
+COPY . .
+
+ENTRYPOINT [ "/bin/bash" ]
