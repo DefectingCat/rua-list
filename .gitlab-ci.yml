@@ -37,7 +37,7 @@ pages:
     image: alpine
     dependencies:
         - build:linux-gnu-amd64
-        - build:linux-musl-amd64
+        # - build:linux-musl-amd64
         - rustdoc
     script:
         - mkdir -p public
