@@ -13,9 +13,6 @@ build:pre:
         - echo "[source.ustc]" >> $HOME/.cargo/config
         - echo "registry = \"sparse+https://mirrors.ustc.edu.cn/crates.io-index/\"" >> $HOME/.cargo/config
         - mkdir public
-    artifacts:
-        paths:
-            - target/release/rua-list
 
 build:linux-gnu-amd64:
     stage: build
