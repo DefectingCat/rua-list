@@ -4,7 +4,7 @@ stages:
 
 build:linux-gnu-amd64:
     stage: build
-    image: 192.168.31.245:5000/xfy/rust-builder/:latest
+    image: rust:latest
     script:
         - cargo build --release
     artifacts:
@@ -13,9 +13,21 @@ build:linux-gnu-amd64:
 
 build:windows-amd64:
     stage: build
-    image: 192.168.31.245:5000/xfy/rust-builder/:latest
+    image: rust:latest
     script:
         - cargo build --target=x86_64-pc-windows-gnu --release
+        - mkdir $HOME/.cargo
+        - echo "[source.crates-io]" >> $HOME/.cargo/config
+        - echo "replace-with = 'ustc'" >> $HOME/.cargo/config
+        - echo "" >> $HOME/.cargo/config
+        - echo "[source.ustc]" >> $HOME/.cargo/config
+        - echo "registry = \"sparse+https://mirrors.ustc.edu.cn/crates.io-index/\"" >> $HOME/.cargo/config
+        - apt update
+        - apt install -y g++-mingw-w64-x86-64
+        - rustup target add x86_64-unknown-linux-musl
+        - rustup target add x86_64-pc-windows-gnu
+        - rustup toolchain install stable-x86_64-pc-windows-gnu
+        - cargo build --release --target x86_64-pc-windows-gnu
     artifacts:
         paths:
             - target/x86_64-pc-windows-gnu/release/rua-list
