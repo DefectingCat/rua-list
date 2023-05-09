@@ -14,11 +14,11 @@ build:linux-gnu-amd64:
         - echo "registry = \"sparse+https://mirrors.ustc.edu.cn/crates.io-index/\"" >> $HOME/.cargo/config
         - mkdir public
         - cargo build --release
-        - mv target/release/rua-list target/release/rua-list-x86_64-unknown-linux-gnu-v${CI_COMMIT_TAG}
-        - mv target/release/rua-list-x86_64-unknown-linux-gnu-v${CI_COMMIT_TAG} public/
+        - 'mv target/release/rua-list target/release/rua-list-x86_64-unknown-linux-gnu-v${CI_COMMIT_TAG}'
+        - 'mv target/release/rua-list-x86_64-unknown-linux-gnu-v${CI_COMMIT_TAG} public/'
     artifacts:
         paths:
-            - public/rua-list-x86_64-unknown-linux-gnu
+            - 'public/rua-list-x86_64-unknown-linux-gnu-v${CI_COMMIT_TAG}'
 
 build:linux-musl-amd64:
     stage: build
