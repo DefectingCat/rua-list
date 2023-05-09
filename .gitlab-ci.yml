@@ -2,18 +2,6 @@ stages:
     - build
     - release
 
-build:pre:
-    stage: build
-    image: rust:latest
-    script:
-        - mkdir $HOME/.cargo
-        - echo "[source.crates-io]" >> $HOME/.cargo/config
-        - echo "replace-with = 'ustc'" >> $HOME/.cargo/config
-        - echo "" >> $HOME/.cargo/config
-        - echo "[source.ustc]" >> $HOME/.cargo/config
-        - echo "registry = \"sparse+https://mirrors.ustc.edu.cn/crates.io-index/\"" >> $HOME/.cargo/config
-        - mkdir public
-
 build:linux-gnu-amd64:
     stage: build
     image: rust:latest
