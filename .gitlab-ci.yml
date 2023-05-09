@@ -4,7 +4,7 @@ stages:
 
 build:linux-gnu-amd64:
     stage: build
-    image: rust:latest
+    image: 192.168.31.245:5000/xfy/rust-builder/:latest
     script:
         - cargo build --release
     artifacts:
@@ -13,15 +13,12 @@ build:linux-gnu-amd64:
 
 build:windows-amd64:
     stage: build
-    image: rust:latest
+    image: 192.168.31.245:5000/xfy/rust-builder/:latest
     script:
-        - apt update -y && apt upgrade -y apt install -y g++-mingw-w64-x86-64
-        - rustup target add x86_64-pc-windows-gnu
-        - rustup toolchain install stable-x86_64-pc-windows-gnu
         - cargo build --target=x86_64-pc-windows-gnu --release
     artifacts:
         paths:
-            - target/release/x86_64-pc-windows-gnu/rua-list
+            - target/x86_64-pc-windows-gnu/release/rua-list
 
 rustdoc:
     stage: build
