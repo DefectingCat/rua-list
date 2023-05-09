@@ -29,7 +29,7 @@ build:windows-amd64:
         - cargo build --release --target x86_64-pc-windows-gnu
     artifacts:
         paths:
-            - target/release/x86_64-pc-windows-gnu/rua-list
+            - target/x86_64-pc-windows-gnu/release/rua-list.exe
 
 rustdoc:
     stage: build
