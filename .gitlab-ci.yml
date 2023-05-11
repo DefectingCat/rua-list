@@ -42,7 +42,7 @@ build:linux-musl-amd64:
         - cargo build --release --target x86_64-unknown-linux-musl
         - mkdir public
         - "mv target/x86_64-unknown-linux-musl/release/rua-list target/x86_64-unknown-linux-musl/release/rua-list-x86_64-unknown-linux-musl-$CI_COMMIT_TAG"
-        - "mv target/x86_64-unknown-linux-musl/release/rua-list-x86_64-unknown-linux-musl-$CI_COMMIT_TAG public/rua-list-x86_64-unknown-linux-musl-$CI_COMMIT_TAG"
+        - "mv target/x86_64-unknown-linux-musl/release/rua-list-x86_64-unknown-linux-musl-$CI_COMMIT_TAG public/"
     artifacts:
         paths:
             - public/rua-list-x86_64-unknown-linux-musl-$CI_COMMIT_TAG
@@ -60,7 +60,7 @@ build:windows-amd64:
         - cargo build --release --target x86_64-pc-windows-gnu
         - mkdir public
         - "mv target/x86_64-pc-windows-gnu/release/rua-list.exe target/x86_64-pc-windows-gnu/release/rua-list-x86_64-pc-windows-gnu-$CI_COMMIT_TAG.exe"
-        - "mv target/x86_64-pc-windows-gnu/release/rua-list-x86_64-pc-windows-gnu-$CI_COMMIT_TAG.exe public/rua-list-x86_64-pc-windows-gnu-$CI_COMMIT_TAG.exe"
+        - "mv target/x86_64-pc-windows-gnu/release/rua-list-x86_64-pc-windows-gnu-$CI_COMMIT_TAG.exe public/"
     artifacts:
         paths:
             - public/rua-list-x86_64-pc-windows-gnu-$CI_COMMIT_TAG.exe
@@ -86,3 +86,12 @@ release_job:
     release: # See https://docs.gitlab.com/ee/ci/yaml/#release for available properties
         tag_name: "$CI_COMMIT_TAG"
         description: "$CI_COMMIT_TAG"
+    assets:
+        links:
+            - name: "rua-list-x86_64-unknown-linux-gnu-$CI_COMMIT_TAG"
+              url: "https://git.rua.plus/${CI_PROJECT_NAMESPACE}/${CI_PROJECT_NAME}/cw/-/jobs/${CI_JOB_ID}/artifacts/file/public/rua-list-x86_64-unknown-linux-gnu-$CI_COMMIT_TAG"
+            - name: "rua-list-x86_64-unknown-linux-musl-$CI_COMMIT_TAG"
+              url: "https://git.rua.plus/${CI_PROJECT_NAMESPACE}/${CI_PROJECT_NAME}/cw/-/jobs/${CI_JOB_ID}/artifacts/file/public/rua-list-x86_64-unknown-linux-musl-$CI_COMMIT_TAG"
+            - name: "ua-list-x86_64-pc-windows-gnu-$CI_COMMIT_TAG.exe"
+              url: "https://git.rua.plus/${CI_PROJECT_NAMESPACE}/${CI_PROJECT_NAME}/cw/-/jobs/${CI_JOB_ID}/artifacts/file/public/ua-list-x86_64-pc-windows-gnu-$CI_COMMIT_TAG.exe"
+
