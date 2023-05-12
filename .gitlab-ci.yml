@@ -2,14 +2,6 @@ stages:
     - build
     - release
 
-build:test:
-    stage: build
-    image: rust:latest
-    script:
-        - echo 'running release_job'
-        - echo 'Previous Job ID is printed below'
-        - echo $CI_JOB_ID
-
 build:linux-gnu-amd64:
     stage: build
     image: rust:latest
