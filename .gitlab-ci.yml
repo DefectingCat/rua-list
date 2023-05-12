@@ -76,22 +76,22 @@ rustdoc:
         paths:
             - target/doc
 
-release_job:
-    stage: release
-    image: registry.gitlab.com/gitlab-org/release-cli:latest
-    rules:
-        - if: $CI_COMMIT_TAG # Run this job when a tag is created
-    script:
-        - echo "running release_job"
-    release: # See https://docs.gitlab.com/ee/ci/yaml/#release for available properties
-        tag_name: "$CI_COMMIT_TAG"
-        description: "$CI_COMMIT_TAG"
-    assets:
-        links:
-            - name: "rua-list-x86_64-unknown-linux-gnu-$CI_COMMIT_TAG"
-              url: "https://git.rua.plus/${CI_PROJECT_NAMESPACE}/${CI_PROJECT_NAME}/cw/-/jobs/${CI_JOB_ID}/artifacts/file/public/rua-list-x86_64-unknown-linux-gnu-$CI_COMMIT_TAG"
-            - name: "rua-list-x86_64-unknown-linux-musl-$CI_COMMIT_TAG"
-              url: "https://git.rua.plus/${CI_PROJECT_NAMESPACE}/${CI_PROJECT_NAME}/cw/-/jobs/${CI_JOB_ID}/artifacts/file/public/rua-list-x86_64-unknown-linux-musl-$CI_COMMIT_TAG"
-            - name: "ua-list-x86_64-pc-windows-gnu-$CI_COMMIT_TAG.exe"
-              url: "https://git.rua.plus/${CI_PROJECT_NAMESPACE}/${CI_PROJECT_NAME}/cw/-/jobs/${CI_JOB_ID}/artifacts/file/public/ua-list-x86_64-pc-windows-gnu-$CI_COMMIT_TAG.exe"
+#release_job:
+#    stage: release
+#    image: registry.gitlab.com/gitlab-org/release-cli:latest
+#    rules:
+#        - if: $CI_COMMIT_TAG # Run this job when a tag is created
+#    script:
+#        - echo "running release_job"
+#    release: # See https://docs.gitlab.com/ee/ci/yaml/#release for available properties
+#        tag_name: "$CI_COMMIT_TAG"
+#        description: "$CI_COMMIT_TAG"
+#    assets:
+#        links:
+#            - name: "rua-list-x86_64-unknown-linux-gnu-$CI_COMMIT_TAG"
+#              url: "https://git.rua.plus/${CI_PROJECT_NAMESPACE}/${CI_PROJECT_NAME}/cw/-/jobs/${CI_JOB_ID}/artifacts/file/public/rua-list-x86_64-unknown-linux-gnu-$CI_COMMIT_TAG"
+#            - name: "rua-list-x86_64-unknown-linux-musl-$CI_COMMIT_TAG"
+#              url: "https://git.rua.plus/${CI_PROJECT_NAMESPACE}/${CI_PROJECT_NAME}/cw/-/jobs/${CI_JOB_ID}/artifacts/file/public/rua-list-x86_64-unknown-linux-musl-$CI_COMMIT_TAG"
+#            - name: "ua-list-x86_64-pc-windows-gnu-$CI_COMMIT_TAG.exe"
+#              url: "https://git.rua.plus/${CI_PROJECT_NAMESPACE}/${CI_PROJECT_NAME}/cw/-/jobs/${CI_JOB_ID}/artifacts/file/public/ua-list-x86_64-pc-windows-gnu-$CI_COMMIT_TAG.exe"
 
