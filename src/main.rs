@@ -4,7 +4,7 @@ use axum::{
     BoxError, Router,
 };
 use log::{error, info};
-use std::{net::SocketAddr, process::exit, time::Duration};
+use std::{process::exit, time::Duration};
 use tokio::net::TcpListener;
 use tower::{timeout::TimeoutLayer, ServiceBuilder};
 
@@ -57,13 +57,7 @@ async fn main() -> Result<()> {
                 .layer(TimeoutLayer::new(Duration::from_secs(10))),
         );
 
-    let addr: SocketAddr = match format!("0.0.0.0:{:?}", port + 1).parse() {
-        Ok(addr) => addr,
-        Err(err) => {
-            error!("Failed to parse address {}", err);
-            exit(1);
-        }
-    };
+    let addr = format!("0.0.0.0:{:?}", port + 1);
     let listener = TcpListener::bind(&addr)
         .await
         .with_context(|| format!("Failed to bind to address {}", addr))?;
