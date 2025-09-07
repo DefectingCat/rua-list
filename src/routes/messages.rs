@@ -28,9 +28,10 @@ async fn send_sms(
     uri: http::Uri,
     params: SMSParams,
     service: RUAService,
+    sms_url: String,
 ) -> (http::StatusCode, String) {
     // Send request
-    match sms_aspx(&uri, params, service).await {
+    match sms_aspx(&uri, params, service, sms_url).await {
         Ok(body) => {
             info!("Got response from {} {body}", uri.path());
             (http::StatusCode::OK, body)
@@ -56,6 +57,7 @@ async fn match_check(
     uri: http::Uri,
     params: SMSParams,
     service: RUAService,
+    sms_url: String,
 ) -> (http::StatusCode, String) {
     // Check exact list
     let mobile_finded = list.exact.iter().find(|number| **number == params.mobile);
@@ -63,7 +65,7 @@ async fn match_check(
         info!("Got number not in exact list {}", params.mobile);
     } else {
         info!("Send sms with number {} in exact list", params.mobile);
-        return send_sms(uri, params, service).await;
+        return send_sms(uri, params, service, sms_url).await;
     }
 
     // Check whildcard
@@ -79,7 +81,7 @@ async fn match_check(
         )
     } else {
         info!("Send sms with number {} in whildcard list", params.mobile);
-        send_sms(uri, params, service).await
+        send_sms(uri, params, service, sms_url).await
     }
 }
 
@@ -88,7 +90,7 @@ pub async fn match_check_get(
     uri: http::Uri,
     Query(params): Query<SMSParams>,
 ) -> impl response::IntoResponse {
-    match_check(config.list, uri, params, RUAService::Get).await
+    match_check(config.list, uri, params, RUAService::Get, config.sms_url).await
 }
 
 pub async fn match_check_post(
@@ -96,5 +98,5 @@ pub async fn match_check_post(
     uri: http::Uri,
     Form(data): Form<SMSParams>,
 ) -> impl response::IntoResponse {
-    match_check(config.list, uri, data, RUAService::Post).await
+    match_check(config.list, uri, data, RUAService::Post, config.sms_url).await
 }

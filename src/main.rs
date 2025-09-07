@@ -17,7 +17,6 @@ use crate::{
 
 mod arg;
 mod config;
-mod consts;
 mod error;
 // mod header_parser;
 mod http_client;

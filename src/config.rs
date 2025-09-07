@@ -4,6 +4,11 @@ use std::{fs, path::PathBuf, process::exit};
 
 use crate::arg::Args;
 
+static MSG_URL: &str = "http://58.242.187.12:8011";
+fn default_msg_url() -> String {
+    MSG_URL.into()
+}
+
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct List {
     pub exact: Vec<String>,
@@ -16,6 +21,9 @@ pub struct Config {
     pub log_path: Option<PathBuf>,
     // Listen port
     pub port: Option<usize>,
+    // SMS url
+    #[serde(default = "default_msg_url")]
+    pub sms_url: String,
     pub list: List,
 }
 
