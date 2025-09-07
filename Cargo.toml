@@ -14,7 +14,12 @@ clap = { version = "4.5.47", features = ["derive"] }
 thiserror = "2.0.16"
 anyhow = "1.0.99"
 axum = "0.8.4"
-reqwest = "0.12.23"
+reqwest = { version = "0.12.23", default-features = false, features = [
+    "charset",
+    "http2",
+    "system-proxy",
+    "rustls-tls",
+] }
 wildmatch = "2.4.0"
 tower = { version = "0.5.2", features = ["full"] }
 tower-http = { version = "0.6.6", features = ["full"] }
