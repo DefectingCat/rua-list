@@ -4,8 +4,8 @@ A tiny whitelist built with Rust.
 
 ## Feature
 
--   Support wildcard.
--   Tiny runtime.
+- Support wildcard.
+- Tiny runtime.
 
 ## Build from souce
 
@@ -20,5 +20,5 @@ TODO
 
 ## TODO
 
--   [ ] Switch logger to tracing.
--   [ ] Split individual log file.
+- [x] Switch logger to tracing.
+- [x] Split individual log file.

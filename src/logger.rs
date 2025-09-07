@@ -1,9 +1,10 @@
 use crate::config::Config;
 use anyhow::Result;
+use tracing::level_filters::LevelFilter;
 use tracing_appender::{non_blocking::WorkerGuard, rolling};
 use tracing_error::ErrorLayer;
 use tracing_subscriber::{
-    filter, fmt, prelude::__tracing_subscriber_SubscriberExt, util::SubscriberInitExt, Registry,
+    fmt, prelude::__tracing_subscriber_SubscriberExt, util::SubscriberInitExt, EnvFilter, Registry,
 };
 
 pub fn logger_init(config: &Config) -> Result<WorkerGuard> {
@@ -24,10 +25,14 @@ pub fn logger_init(config: &Config) -> Result<WorkerGuard> {
         .with_ansi(false)
         .with_writer(non_blocking);
 
-    let filter = filter::LevelFilter::INFO;
+    // let filter = filter::LevelFilter::INFO;
+    let env_layer = EnvFilter::builder()
+        .with_default_directive(LevelFilter::INFO.into())
+        .with_env_var("RUA_LIST_LOG")
+        .from_env_lossy();
 
     Registry::default()
-        .with(filter)
+        .with(env_layer)
         .with(ErrorLayer::default())
         .with(formatting_layer)
         .with(file_layer)

@@ -1,7 +1,7 @@
-use axum::{http::Request, middleware::Next, response::Response};
+use axum::{body::Body, http::Request, middleware::Next, response::Response};
 use log::info;
 
-pub async fn logger_middleware<B>(request: Request<B>, next: Next<B>) -> Response {
+pub async fn logger_middleware(request: Request<Body>, next: Next) -> Response {
     let host = if let Some(host) = request.headers().get("host") {
         host.to_str().unwrap_or("Unknown")
     } else {

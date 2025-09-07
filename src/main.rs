@@ -1,10 +1,11 @@
-use anyhow::Result;
+use anyhow::{Context, Result};
 use axum::{
     error_handling::HandleErrorLayer, http, http::StatusCode, middleware, response, routing::get,
-    BoxError, Router, Server,
+    BoxError, Router,
 };
 use log::{error, info};
 use std::{net::SocketAddr, process::exit, time::Duration};
+use tokio::net::TcpListener;
 use tower::{timeout::TimeoutLayer, ServiceBuilder};
 
 use crate::{
@@ -63,11 +64,13 @@ async fn main() -> Result<()> {
             exit(1);
         }
     };
+    let listener = TcpListener::bind(&addr)
+        .await
+        .with_context(|| format!("Failed to bind to address {}", addr))?;
     // info!("Server listening on {}", &addr);
 
     tokio::spawn(async move {
-        match Server::bind(&addr)
-            .serve(app.into_make_service())
+        match axum::serve(listener, app.into_make_service())
             .with_graceful_shutdown(shutdown_signal())
             .await
         {
