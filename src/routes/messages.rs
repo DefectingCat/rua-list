@@ -7,7 +7,7 @@ use serde::{Deserialize, Serialize};
 use wildmatch::WildMatch;
 
 use crate::{
-    config::List,
+    config::{Config, List},
     http_client::{sms_aspx, RUAService},
 };
 
@@ -84,17 +84,17 @@ async fn match_check(
 }
 
 pub async fn match_check_get(
-    State(list): State<List>,
+    State(config): State<Config>,
     uri: http::Uri,
     Query(params): Query<SMSParams>,
 ) -> impl response::IntoResponse {
-    match_check(list, uri, params, RUAService::Get).await
+    match_check(config.list, uri, params, RUAService::Get).await
 }
 
 pub async fn match_check_post(
-    State(list): State<List>,
+    State(config): State<Config>,
     uri: http::Uri,
     Form(data): Form<SMSParams>,
 ) -> impl response::IntoResponse {
-    match_check(list, uri, data, RUAService::Post).await
+    match_check(config.list, uri, data, RUAService::Post).await
 }

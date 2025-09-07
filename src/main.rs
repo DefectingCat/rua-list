@@ -1,7 +1,7 @@
 use anyhow::{Context, Result};
 use axum::{
-    error_handling::HandleErrorLayer, http, http::StatusCode, middleware, response, routing::get,
-    BoxError, Router,
+    error_handling::HandleErrorLayer, http, http::StatusCode, response, routing::get, BoxError,
+    Router,
 };
 use log::{error, info};
 use std::{process::exit, time::Duration};
@@ -10,9 +10,8 @@ use tower::{timeout::TimeoutLayer, ServiceBuilder};
 
 use crate::{
     config::Config,
-    header_parser::headers_parser,
     logger::logger_init,
-    middlewares::logger::logger_middleware,
+    middlewares::logger::logging_route,
     routes::messages::{match_check_get, match_check_post},
 };
 
@@ -20,7 +19,7 @@ mod arg;
 mod config;
 mod consts;
 mod error;
-mod header_parser;
+// mod header_parser;
 mod http_client;
 mod logger;
 mod middlewares;
@@ -47,17 +46,17 @@ async fn main() -> Result<()> {
     let app = Router::new()
         .merge(message_routes)
         .fallback(fallback)
-        .with_state(config.list)
+        .with_state(config)
         .layer(
             ServiceBuilder::new()
-                .layer(middleware::from_fn(logger_middleware))
                 .layer(HandleErrorLayer::new(|_: BoxError| async {
                     StatusCode::REQUEST_TIMEOUT
                 }))
                 .layer(TimeoutLayer::new(Duration::from_secs(10))),
         );
+    let app = logging_route(app);
 
-    let addr = format!("0.0.0.0:{:?}", port + 1);
+    let addr = format!("0.0.0.0:{:?}", port);
     let listener = TcpListener::bind(&addr)
         .await
         .with_context(|| format!("Failed to bind to address {}", addr))?;
@@ -78,7 +77,7 @@ async fn main() -> Result<()> {
         }
     });
 
-    headers_parser(port).await;
+    // headers_parser(port).await;
     Ok(())
 }
 

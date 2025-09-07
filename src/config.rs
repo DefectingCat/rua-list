@@ -10,7 +10,7 @@ pub struct List {
     pub wildcard: Vec<String>,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Config {
     // pub log_level: Option<String>,
     pub log_path: Option<PathBuf>,
