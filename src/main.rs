@@ -60,22 +60,27 @@ async fn main() -> Result<()> {
     let listener = TcpListener::bind(&addr)
         .await
         .with_context(|| format!("Failed to bind to address {}", addr))?;
-    // info!("Server listening on {}", &addr);
+    info!("Server listening on {}", &addr);
 
-    tokio::spawn(async move {
-        match axum::serve(listener, app.into_make_service())
-            .with_graceful_shutdown(shutdown_signal())
-            .await
-        {
-            Ok(()) => {
-                info!("Server shutdown");
-            }
-            Err(err) => {
-                error!("Can not start server {}", err);
-                exit(1);
-            }
-        }
-    });
+    axum::serve(listener, app.into_make_service())
+        .with_graceful_shutdown(shutdown_signal())
+        .await
+        .with_context(|| format!("Failed to start server on {}", addr))?;
+    //
+    // tokio::spawn(async move {
+    //     match axum::serve(listener, app.into_make_service())
+    //         .with_graceful_shutdown(shutdown_signal())
+    //         .await
+    //     {
+    //         Ok(()) => {
+    //             info!("Server shutdown");
+    //         }
+    //         Err(err) => {
+    //             error!("Can not start server {}", err);
+    //             exit(1);
+    //         }
+    //     }
+    // });
 
     // headers_parser(port).await;
     Ok(())

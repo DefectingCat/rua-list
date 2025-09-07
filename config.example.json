@@ -1,5 +1,5 @@
 {
-  "log_path": "/tmp/rua-list/logs/",
+  "log_path": "./.logs/",
   "port": 3000,
 
   "list": {
